@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Bitez</string>
+
     <string name="home_tab">Home</string>
+    <string name="explore_tab">Explore</string>
+    <string name="profile_tab">Profile</string>
 </resources>

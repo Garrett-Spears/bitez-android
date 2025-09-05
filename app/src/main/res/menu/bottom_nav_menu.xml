@@ -5,11 +5,11 @@
         android:icon="@drawable/home_icon"
         android:title="@string/home_tab" />
     <item
-        android:id="@+id/navigation_search"
-        android:icon="@drawable/ic_launcher_background"
-        android:title="@string/home_tab" />
+        android:id="@+id/navigation_explore"
+        android:icon="@drawable/explore_icon"
+        android:title="@string/explore_tab" />
     <item
         android:id="@+id/navigation_profile"
-        android:icon="@drawable/ic_launcher_background"
-        android:title="@string/home_tab" />
+        android:icon="@drawable/profile_icon"
+        android:title="@string/profile_tab" />
 </menu>
