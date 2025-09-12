@@ -25,12 +25,6 @@ class MainActivity : AppCompatActivity() {
         val bottomNavigationView: BottomNavigationView =
             findViewById<BottomNavigationView>(R.id.bottom_nav_bar)
         bottomNavigationView.setupWithNavController(navController)
-
-//        // Setup the ActionBar with navController and 3 top level destinations for the ta
-//        appBarConfiguration = AppBarConfiguration(
-//            setOf(R.id.home_screen, R.id.explore_screen,  R.id.profile_screen)
-//        )
-//        setupActionBarWithNavController(navController, appBarConfiguration)
     }
 
     // Navigates to last fragment on tab's stack, and exits app if on root fragment of tab
