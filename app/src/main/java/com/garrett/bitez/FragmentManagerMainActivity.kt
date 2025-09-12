@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -15,8 +16,12 @@ import com.garrett.bitez.ui.explore.ExploreFragment
 import com.garrett.bitez.ui.profile.ProfileFragment
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
-    private val TAG = this::class.java.simpleName
+class FragmentManagerMainActivity : AppCompatActivity() {
+    private val tag: String = FragmentManagerMainActivity::class.java.simpleName
+
+    val homeFragment: HomeFragment = HomeFragment()
+    val exploreFragment: ExploreFragment = ExploreFragment()
+    val profileFragment: ProfileFragment = ProfileFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,32 +44,33 @@ class MainActivity : AppCompatActivity() {
 
     // Helper function to switch between fragment tabs
     private fun switchTab(itemId: Int): Boolean {
+        var newFragment: Fragment? = null;
+
         // Figure out which tab to switch to
         when (itemId) {
             R.id.navigation_home -> {
-                Log.d(TAG, "Switching to home tab")
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, HomeFragment())
-                    .commit()
+                Log.d(tag, "Switching to home tab")
+                newFragment = homeFragment
             }
             R.id.navigation_explore -> {
-                Log.d(TAG, "Switching to explore tab")
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, ExploreFragment())
-                    .commit()
+                Log.d(tag, "Switching to explore tab")
+                newFragment = exploreFragment
             }
             R.id.navigation_profile -> {
-                Log.d(TAG, "Switching to profile tab")
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, ProfileFragment())
-                    .commit()
+                Log.d(tag, "Switching to profile tab")
+                newFragment = profileFragment
             }
             else -> {
                 // Should never get here
-                Log.w(TAG, "Clicked on bottom nav view but couldn't find tab.")
+                Log.w(tag, "Clicked on bottom nav view but couldn't find tab.")
                 return false
             }
         }
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, newFragment)
+            .commit()
+
         return true
     }
 }

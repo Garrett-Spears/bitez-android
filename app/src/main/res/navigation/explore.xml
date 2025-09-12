@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_explore"
+    app:startDestination="@+id/explore_screen">
+    <fragment
+        android:id="@+id/explore_screen"
+        android:name="com.garrett.bitez.ui.explore.ExploreFragment"
+        tools:layout="@layout/fragment_explore">
+    </fragment>
+</navigation>

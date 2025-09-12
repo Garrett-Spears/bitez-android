@@ -16,6 +16,13 @@ plugins {
     alias(libs.plugins.devtools.ksp)
 }
 
+afterEvaluate {
+    tasks.withType(JavaCompile::class) {
+        options.compilerArgs.add("-Xlint:unchecked")
+        options.compilerArgs.add("-Xlint:deprecation")
+    }
+}
+
 android {
     namespace = "com.garrett.bitez"
     compileSdk = 36
@@ -69,6 +76,8 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.hilt.android)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
