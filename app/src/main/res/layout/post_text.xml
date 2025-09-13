@@ -17,7 +17,6 @@
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:scaleType="centerCrop"
-            android:clipToOutline="true"
             android:background="@drawable/profile_icon" />
         <TextView
             android:id="@+id/account_name"
