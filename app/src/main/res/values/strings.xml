@@ -4,4 +4,6 @@
     <string name="home_tab">Home</string>
     <string name="explore_tab">Explore</string>
     <string name="profile_tab">Profile</string>
+
+    <string name="feed_title">Feed</string>
 </resources>

@@ -3,7 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:paddingHorizontal="12sp"
+    android:paddingTop="4dp"
+    android:paddingBottom="32dp">
 
     <LinearLayout
         android:id="@+id/post_header"
@@ -14,24 +16,28 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:scaleType="centerCrop"
             android:background="@drawable/profile_icon" />
         <TextView
             android:id="@+id/account_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Name" />
+            android:text="Profile"
+            android:textSize="22sp"
+            android:paddingStart="8dp"/>
     </LinearLayout>
 
     <TextView
         android:id="@+id/text_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="YOO"
+        android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/post_header"
         android:layout_marginTop="12dp"
         android:layout_marginHorizontal="36dp"/>
