@@ -6,4 +6,6 @@
     <string name="profile_tab">Profile</string>
 
     <string name="feed_title">Feed</string>
+
+    <string name="explore_map_id">explore_map_id"</string>
 </resources>

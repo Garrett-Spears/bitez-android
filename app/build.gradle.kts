@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.devtools.ksp)
+    alias(libs.plugins.secrets.gradle)
 }
 
 afterEvaluate {
@@ -39,6 +40,10 @@ android {
             useSupportLibrary = true
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
+
 
     buildTypes {
         release {
@@ -92,4 +97,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.google.maps)
 }
