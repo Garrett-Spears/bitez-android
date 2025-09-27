@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
             findViewById<BottomNavigationView>(R.id.bottom_nav_bar)
         bottomNavigationView.setupWithNavController(navController)
 
-        preloadMapReources()
+        preloadMapResources()
     }
 
     // Navigates to last fragment on tab's stack, and exits app if on root fragment of tab
@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     // Hack to load google maps API resources on app startup to prevent slow mapView.onCreateView()
     // which causes lag switching to explore tab
-    private fun preloadMapReources() {
+    private fun preloadMapResources() {
         val dummyMapView: MapView = MapView(this)
         dummyMapView.onCreate(null)
         dummyMapView.getMapAsync { googleMap ->
