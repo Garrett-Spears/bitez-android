@@ -17,18 +17,31 @@
         android:id="@+id/bottom_sheet"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="700dp"
+        android:layout_height="match_parent"
         android:background="@android:color/white"
         android:elevation="8dp"
         app:behavior_hideable="false"
         app:behavior_peekHeight="@dimen/bottom_modal_peek_height"
+        app:behavior_fitToContents="false"
+        app:behavior_expandedOffset="50dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+        <!-- Handle/drag bar -->
+        <View
+            android:layout_width="50dp"
+            android:layout_height="4dp"
+            android:background="@drawable/bottom_sheet_handle"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Nearby Places"
-            android:padding="16dp"
+            android:textAlignment="textStart"
+            android:text="@string/bottom_sheet_title"
+            android:textSize="16sp"
+            android:paddingVertical="18dp"
+            android:paddingHorizontal="24dp"
             android:textStyle="bold" />
 
         <androidx.recyclerview.widget.RecyclerView

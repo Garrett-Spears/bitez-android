@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -23,6 +24,7 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 
 // Create defaults for start position
 const val DEFAULT_START_LATITUDE: Double = 39.8283
@@ -73,6 +75,11 @@ class ExploreFragment : Fragment() {
 
         // Check if map already has saved position to restore
         val mapHasSavedPosition: Boolean = this.exploreViewModel.cameraPositionAvailable()
+
+        val bottomSheet: LinearLayout = view.findViewById<LinearLayout>(R.id.bottom_sheet)
+        val bottomSheetBehavior: BottomSheetBehavior<LinearLayout> = BottomSheetBehavior.from(bottomSheet)
+        bottomSheetBehavior.halfExpandedRatio = 0.5f
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
 
         // Get ref to map from layout
         this.mapView = view.findViewById<MapView>(R.id.explore_map)

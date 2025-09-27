@@ -8,4 +8,5 @@
     <string name="feed_title">Feed</string>
 
     <string name="explore_map_id">explore_map_id"</string>
+    <string name="bottom_sheet_title">Nearby Places</string>
 </resources>
