@@ -1,10 +1,12 @@
 package com.garrett.bitez
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.gms.maps.MapView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,10 +27,22 @@ class MainActivity : AppCompatActivity() {
         val bottomNavigationView: BottomNavigationView =
             findViewById<BottomNavigationView>(R.id.bottom_nav_bar)
         bottomNavigationView.setupWithNavController(navController)
+
+        preloadMapReources()
     }
 
     // Navigates to last fragment on tab's stack, and exits app if on root fragment of tab
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
+    }
+
+    // Hack to load google maps API resources on app startup to prevent slow mapView.onCreateView()
+    // which causes lag switching to explore tab
+    private fun preloadMapReources() {
+        val dummyMapView: MapView = MapView(this)
+        dummyMapView.onCreate(null)
+        dummyMapView.getMapAsync { googleMap ->
+            Log.d("DummyMap", "Play Services initialized")
+        }
     }
 }
