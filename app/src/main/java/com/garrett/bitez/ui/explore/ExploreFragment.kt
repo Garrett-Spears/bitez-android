@@ -8,16 +8,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import com.garrett.bitez.FragmentManagerMainActivity
 
 import com.garrett.bitez.R
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -29,9 +25,6 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.android.gms.tasks.Task
 
 class ExploreFragment : Fragment() {
     private val tag: String = this::class.java.simpleName
@@ -44,10 +37,15 @@ class ExploreFragment : Fragment() {
         const val CITY_ZOOM_LEVEL: Float = 12f
     }
 
-    // State variables to upload fragment upon opening
-    private val _isLoading = MutableLiveData<Boolean>(true)
-    private var isLoading: LiveData<Boolean> = _isLoading
-    private var startLocation: Location? = null
+    // Ref to viewModel
+    private val exploreViewModel: ExploreViewModel by viewModels()
+
+    // UI components
+    private var mapView: MapView? = null
+    private var googleMap: GoogleMap? = null
+
+    // Locations service client
+    private var fusedLocationProviderClient: FusedLocationProviderClient? = null
 
     // Permission launcher to handle permission requests and results
     private val requestPermissionLauncher =
@@ -56,18 +54,14 @@ class ExploreFragment : Fragment() {
                 override fun onActivityResult(result: Boolean) {
                     // User accepted permission request, so fetch last known location
                     if (result) {
-                        getLastLocation()
+                        exploreViewModel.getLastLocation(requireContext(), fusedLocationProviderClient)
                     }
                     // User denied permission request, so stop loading state without fetching location
                     else {
-                        _isLoading.value = false
+                        exploreViewModel.setIsLoading(false)
                     }
                 }
         })
-
-    private var mapView: MapView? = null
-    private var googleMap: GoogleMap? = null
-    private var fusedLocationProviderClient: FusedLocationProviderClient? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -87,7 +81,7 @@ class ExploreFragment : Fragment() {
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         // Handle map state once loading is done
-        isLoading.observe(viewLifecycleOwner, Observer<Boolean> {
+        exploreViewModel.isLoading.observe(viewLifecycleOwner, Observer<Boolean> {
             this@ExploreFragment.initializeMap()
         })
 
@@ -108,6 +102,8 @@ class ExploreFragment : Fragment() {
     }
 
     private fun initializeMap() {
+        val startLocation: Location? = exploreViewModel.startLocation.value
+
         // Assign start latitude and longitude, assign to default position if start location
         // not available
         val startLatitude: Double = startLocation?.latitude ?: DEFAULT_START_LATITUDE
@@ -128,39 +124,13 @@ class ExploreFragment : Fragment() {
         })
     }
 
-    // Function to fetch the last known location of device
-    private fun getLastLocation() {
-        if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.w(tag, "Cannot call func to get last location without location permission.")
-        }
-
-        // Create async task to get location of device
-        val getLocationTask: Task<Location?>? = fusedLocationProviderClient?.lastLocation
-
-        // If task was launched successfully, add on complete listener to process result
-        if (getLocationTask != null) {
-            val onCompleteListener: OnCompleteListener<Location?> = object : OnCompleteListener<Location?> {
-                override fun onComplete(task: Task<Location?>) {
-                    // Found valid non-null location, so use it
-                    if (task.isSuccessful && task.result != null) {
-                        startLocation = task.result
-                        Log.d(tag, "Location: ${task.result?.latitude}, ${task.result?.longitude}")
-                    }
-
-                    // Stop loading since task finished
-                    _isLoading.value = false
-                }
-            }
-
-            getLocationTask.addOnCompleteListener(onCompleteListener)
-        }
-    }
-
     private fun tryGetDeviceLocationThenInitializeMap() {
+        // Set page state to load
+        this.exploreViewModel.setIsLoading(true)
+
         // User has already given permission
         if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Log.d(tag, "Already have permission")
-            getLastLocation()
+            exploreViewModel.getLastLocation(requireContext(), fusedLocationProviderClient)
         }
         // Request location permission if not granted
         else {
