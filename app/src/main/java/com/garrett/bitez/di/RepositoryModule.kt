@@ -1,5 +1,6 @@
 package com.garrett.bitez.di
 
+import com.garrett.bitez.data.repository.FoodLocationRepository
 import com.garrett.bitez.data.repository.PostRepository
 import dagger.Module
 import dagger.Provides
@@ -12,5 +13,10 @@ object RepositoryModule {
     @Provides
     fun providePostRepository(): PostRepository {
         return PostRepository()
+    }
+
+    @Provides
+    fun provideFoodLocationRepository(): FoodLocationRepository {
+        return FoodLocationRepository()
     }
 }

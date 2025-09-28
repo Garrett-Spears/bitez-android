@@ -10,11 +10,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.garrett.bitez.data.model.FoodLocation
+import com.garrett.bitez.data.repository.FoodLocationRepository
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +26,10 @@ import kotlin.String
 
 const val CITY_ZOOM_LEVEL: Float = 12f
 
-class ExploreViewModel : ViewModel() {
+@HiltViewModel
+class ExploreViewModel @Inject constructor(
+    private val foodLocationRepository: FoodLocationRepository
+): ViewModel() {
     private val tag: String = this::class.java.simpleName
 
     // Keep track of whether map is ready to render
