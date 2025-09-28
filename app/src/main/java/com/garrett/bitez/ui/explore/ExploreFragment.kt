@@ -15,8 +15,11 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 import com.garrett.bitez.R
+import com.garrett.bitez.ui.explore.foodlocations.FoodLocationsAdapter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdate
@@ -44,14 +47,16 @@ class ExploreFragment : Fragment() {
     private val exploreViewModel: ExploreViewModel by viewModels()
 
     // UI components
-    private var mapView: MapView? = null
-    private var googleMap: GoogleMap? = null
+    private lateinit var mapView: MapView
+    private lateinit var googleMap: GoogleMap
 
     // Locations service client
-    private var fusedLocationProviderClient: FusedLocationProviderClient? = null
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     // Bottom sheet fixed UI metrics
-    private var bottomSheetMetrics: BottomSheetMetrics? = null
+    private lateinit var bottomSheetMetrics: BottomSheetMetrics
+
+    private lateinit var foodLocationsAdapter: FoodLocationsAdapter
 
     // Permission launcher to handle permission requests and results
     private val requestPermissionLauncher =
@@ -89,9 +94,16 @@ class ExploreFragment : Fragment() {
 
         this.initializeBottomSheet(bottomSheet)
 
+        // Setup food locations recycler view
+        this.foodLocationsAdapter = FoodLocationsAdapter()
+        val foodLocationsRecyclerView: RecyclerView =
+            bottomSheet.findViewById<RecyclerView>(R.id.food_locations_recycler_view)
+        foodLocationsRecyclerView.adapter = this.foodLocationsAdapter
+        foodLocationsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+
         // Get ref to map from layout
         this.mapView = view.findViewById<MapView>(R.id.explore_map)
-        this.mapView?.onCreate(savedInstanceState)
+        this.mapView.onCreate(savedInstanceState)
 
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
@@ -114,15 +126,15 @@ class ExploreFragment : Fragment() {
     }
 
     // Forward fragment lifecycle to MapView
-    override fun onStart() { super.onStart(); mapView?.onStart() }
-    override fun onResume() { super.onResume(); mapView?.onResume() }
-    override fun onPause() { mapView?.onPause(); super.onPause() }
-    override fun onStop() { mapView?.onStop(); super.onStop() }
-    override fun onDestroyView() { mapView?.onDestroy(); super.onDestroyView() }
-    override fun onLowMemory() { super.onLowMemory(); mapView?.onLowMemory() }
+    override fun onStart() { super.onStart(); mapView.onStart() }
+    override fun onResume() { super.onResume(); mapView.onResume() }
+    override fun onPause() { mapView.onPause(); super.onPause() }
+    override fun onStop() { mapView.onStop(); super.onStop() }
+    override fun onDestroyView() { mapView.onDestroy(); super.onDestroyView() }
+    override fun onLowMemory() { super.onLowMemory(); mapView.onLowMemory() }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        mapView?.onSaveInstanceState(outState)
+        mapView.onSaveInstanceState(outState)
     }
 
     // Function to shrink/grow map as bottom sheet is slid up and down
@@ -141,21 +153,18 @@ class ExploreFragment : Fragment() {
         val bottomMapPadding: Int = min(totalCurrentHeightBottomSheet, totalHeightOfHalfExpandedBottomSheet)
 
         // Set bottom padding of map
-        mapView?.setPadding(0, 0, 0, bottomMapPadding)
+        mapView.setPadding(0, 0, 0, bottomMapPadding)
     }
 
     // Helper function to lazy-calc bottom sheet data or return cached data if avail
     private fun getCurrentBottomSheetMetrics(bottomSheet: View): BottomSheetMetrics {
-        var currBottomSheetMetrics: BottomSheetMetrics? = this@ExploreFragment.bottomSheetMetrics
-
         // If bottom sheet sizes have not been calculated yet, calculate them and cache
         // them for future reuse
-        if (currBottomSheetMetrics == null) {
-            currBottomSheetMetrics = BottomSheetMetrics.calcBottomSheetMetrics(bottomSheet)
-            this@ExploreFragment.bottomSheetMetrics = currBottomSheetMetrics // Caching
+        if (!::bottomSheetMetrics.isInitialized) {
+            this@ExploreFragment.bottomSheetMetrics = BottomSheetMetrics.calcBottomSheetMetrics(bottomSheet)
         }
 
-        return currBottomSheetMetrics
+        return this@ExploreFragment.bottomSheetMetrics
     }
 
     private fun initializeBottomSheet(bottomSheet: LinearLayout) {
@@ -211,7 +220,7 @@ class ExploreFragment : Fragment() {
         }
 
         // Fetch map and initialize its state
-        mapView?.getMapAsync(object : OnMapReadyCallback {
+        mapView.getMapAsync(object : OnMapReadyCallback {
             override fun onMapReady(googleMap: GoogleMap) {
                 // Configure map on creation here
                 googleMap.uiSettings.isZoomControlsEnabled = true
@@ -266,11 +275,11 @@ class ExploreFragment : Fragment() {
 
         // If restoring saved position, do not animate camera (want to immediately restore state)
         if (restoringSavedPosition) {
-            googleMap?.moveCamera(cameraUpdate)
+            googleMap.moveCamera(cameraUpdate)
         }
         // Otherwise, move camera with an animation
         else {
-            googleMap?.animateCamera(cameraUpdate)
+            googleMap.animateCamera(cameraUpdate)
         }
     }
 }
