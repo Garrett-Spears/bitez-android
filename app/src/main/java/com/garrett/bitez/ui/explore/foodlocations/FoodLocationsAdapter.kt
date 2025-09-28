@@ -3,13 +3,12 @@ package com.garrett.bitez.ui.explore.foodlocations
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import com.garrett.bitez.R
 import com.garrett.bitez.data.model.FoodLocation
 
-class FoodLocationsAdapter: PagingDataAdapter<FoodLocation, FoodLocationViewHolder>(
-    FoodLocationsAdapter.foodLocationComparator) {
+class FoodLocationsAdapter(private val foodLocationsList: MutableList<FoodLocation>) : ListAdapter<FoodLocation, FoodLocationViewHolder>(foodLocationComparator) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FoodLocationViewHolder {
         // Inflate the item layout
         val itemView: View = LayoutInflater.from(parent.context)
@@ -19,7 +18,7 @@ class FoodLocationsAdapter: PagingDataAdapter<FoodLocation, FoodLocationViewHold
     }
 
     override fun onBindViewHolder(viewHolder: FoodLocationViewHolder, position: Int) {
-        val foodLocationItem: FoodLocation? = getItem(position)
+        val foodLocationItem: FoodLocation? = foodLocationsList.getOrNull(position)
 
         // Bind data to view holder to display
         if (foodLocationItem != null) {
@@ -27,7 +26,11 @@ class FoodLocationsAdapter: PagingDataAdapter<FoodLocation, FoodLocationViewHold
         }
     }
 
-    // Create comparator to pass to page adapter to use
+    override fun getItemCount(): Int {
+        return foodLocationsList.size
+    }
+
+    // Create comparator to pass to adapter to use
     companion object {
         val foodLocationComparator: DiffUtil.ItemCallback<FoodLocation> = object : DiffUtil.ItemCallback<FoodLocation>() {
             override fun areItemsTheSame(oldItem: FoodLocation, newItem: FoodLocation): Boolean {

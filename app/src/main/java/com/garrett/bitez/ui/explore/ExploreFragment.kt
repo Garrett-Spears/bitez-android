@@ -14,11 +14,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 import com.garrett.bitez.R
+import com.garrett.bitez.data.model.FoodLocation
 import com.garrett.bitez.ui.explore.foodlocations.FoodLocationsAdapter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -30,6 +35,9 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlin.math.min
 
 // Create defaults for start position on map
@@ -93,13 +101,7 @@ class ExploreFragment : Fragment() {
         val bottomSheet: LinearLayout = view.findViewById<LinearLayout>(R.id.bottom_sheet)
 
         this.initializeBottomSheet(bottomSheet)
-
-        // Setup food locations recycler view
-        this.foodLocationsAdapter = FoodLocationsAdapter()
-        val foodLocationsRecyclerView: RecyclerView =
-            bottomSheet.findViewById<RecyclerView>(R.id.food_locations_recycler_view)
-        foodLocationsRecyclerView.adapter = this.foodLocationsAdapter
-        foodLocationsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        this.initializeFoodLocationsList(bottomSheet)
 
         // Get ref to map from layout
         this.mapView = view.findViewById<MapView>(R.id.explore_map)
@@ -167,6 +169,7 @@ class ExploreFragment : Fragment() {
         return this@ExploreFragment.bottomSheetMetrics
     }
 
+    // Initializes UI for bottom sheet
     private fun initializeBottomSheet(bottomSheet: LinearLayout) {
         // Get behavior of bottom sheet to define
         val bottomSheetBehavior: BottomSheetBehavior<LinearLayout> = BottomSheetBehavior.from(bottomSheet)
@@ -209,6 +212,30 @@ class ExploreFragment : Fragment() {
                 updateMapSize(currBottomSheetMetrics, startSlideOffset)
             }
         })
+    }
+
+    // Initializes recyclerview and data for food locations
+    private fun initializeFoodLocationsList(bottomSheet: LinearLayout) {
+        val foodLocationsRecyclerView: RecyclerView =
+            bottomSheet.findViewById<RecyclerView>(R.id.food_locations_recycler_view)
+
+        // Create adapter for recyclerView
+        this.foodLocationsAdapter = FoodLocationsAdapter(mutableListOf())
+
+        // Set adapter and layout manager for RV
+        foodLocationsRecyclerView.adapter = this.foodLocationsAdapter
+        foodLocationsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Start coroutine to listen for new data from flow in viewModel
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Only run when fragment is in STARTED state and not STOPPED
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                this@ExploreFragment.exploreViewModel.foodLocations.collectLatest {
+                        newFoodLocations: List<FoodLocation> ->
+                    foodLocationsAdapter.submitList(newFoodLocations)
+                }
+            }
+        }
     }
 
     private fun initializeMap(restoringSavedPosition: Boolean) {
