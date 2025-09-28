@@ -50,7 +50,7 @@ class ExploreFragment : Fragment() {
     // Locations service client
     private var fusedLocationProviderClient: FusedLocationProviderClient? = null
 
-    // Bottom sheet UI data
+    // Bottom sheet fixed UI metrics
     private var bottomSheetMetrics: BottomSheetMetrics? = null
 
     // Permission launcher to handle permission requests and results
@@ -125,51 +125,6 @@ class ExploreFragment : Fragment() {
         mapView?.onSaveInstanceState(outState)
     }
 
-    // Function to calculate fixed heights of bottom sheet
-    private fun calcBottomSheetMetrics(bottomSheet: View): BottomSheetMetrics {
-        val bottomSheetBehavior: BottomSheetBehavior<View> = BottomSheetBehavior.from(bottomSheet)
-
-        // NOTE: Android coordinate system fixes Y = 0 at top of parent and increases as you go down
-
-        // Percentage of parent view that bottom sheet fills up when half expanded
-        val halfExpandedRatio: Float = bottomSheetBehavior.halfExpandedRatio
-
-        // Percentage of parent view that bottom sheet does not cover when half-expanded
-        val topHalfExpandedRatio: Float = 1 - halfExpandedRatio
-
-        // Height of entire explore page fragment
-        val parentHeight: Int = (bottomSheet.parent as View).height
-
-        // Y-axis distance from top of parent view to top of bottom sheet when fully expanded
-        val expandedTopDist: Int = bottomSheetBehavior.expandedOffset
-
-        // Y-axis distance from top of parent view to top of bottom sheet when fully collapsed
-        val collapsedTopDist: Int = parentHeight - bottomSheetBehavior.peekHeight
-
-        // Y-axis distance from top of parent view to top of bottom sheet when half-expanded
-        val halfExpandedTopDist: Int = (parentHeight * topHalfExpandedRatio).toInt()
-
-        // Height of bottom sheet when half-expanded
-        // NOTE: Calculated as Y-axis distance from top of half-expanded bottom sheet to top of fully-collapsed bottom sheet
-        val heightOfHalfExpandedBottomSheet: Int = collapsedTopDist - halfExpandedTopDist
-
-        // Height of bottom sheet when fully-expanded
-        // NOTE: Calculated as Y-axis distance from top of fully-expanded bottom sheet to top of fully-collapsed bottom sheet
-        val heightOfFullyExpandedBottomSheet: Int = collapsedTopDist - expandedTopDist
-
-        // NOTE: This is == slideOffset for half-expanded bottom sheet since this is the percentage
-        //       at which the bottom covers its total height share
-        val halfSlideOffset = heightOfHalfExpandedBottomSheet.toFloat() / heightOfFullyExpandedBottomSheet.toFloat()
-
-
-        return BottomSheetMetrics(
-            heightOfHalfExpandedBottomSheet,
-            heightOfFullyExpandedBottomSheet,
-            bottomSheetBehavior.peekHeight,
-            halfSlideOffset
-        )
-    }
-
     // Function to shrink/grow map as bottom sheet is slid up and down
     private fun updateMapSize(currBottomSheetMetrics: BottomSheetMetrics, slideOffset: Float) {
         // Height of bottom sheet currently, get current percentage of its max possible height that it can move up
@@ -189,6 +144,20 @@ class ExploreFragment : Fragment() {
         mapView?.setPadding(0, 0, 0, bottomMapPadding)
     }
 
+    // Helper function to lazy-calc bottom sheet data or return cached data if avail
+    private fun getCurrentBottomSheetMetrics(bottomSheet: View): BottomSheetMetrics {
+        var currBottomSheetMetrics: BottomSheetMetrics? = this@ExploreFragment.bottomSheetMetrics
+
+        // If bottom sheet sizes have not been calculated yet, calculate them and cache
+        // them for future reuse
+        if (currBottomSheetMetrics == null) {
+            currBottomSheetMetrics = BottomSheetMetrics.calcBottomSheetMetrics(bottomSheet)
+            this@ExploreFragment.bottomSheetMetrics = currBottomSheetMetrics // Caching
+        }
+
+        return currBottomSheetMetrics
+    }
+
     private fun initializeBottomSheet(bottomSheet: LinearLayout) {
         // Get behavior of bottom sheet to define
         val bottomSheetBehavior: BottomSheetBehavior<LinearLayout> = BottomSheetBehavior.from(bottomSheet)
@@ -203,20 +172,12 @@ class ExploreFragment : Fragment() {
         // Add callback to shrink/expand map as bottom sheet is slid up and down
         bottomSheetBehavior.addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
+                // Do nothing for bottom sheet state changes for now
             }
 
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                var currBottomSheetMetrics: BottomSheetMetrics? = this@ExploreFragment.bottomSheetMetrics
-
-                // If bottom sheet sizes have not been calculated yet, calculate them and cache
-                // them for future reuse
-                if (currBottomSheetMetrics == null) {
-                    currBottomSheetMetrics = calcBottomSheetMetrics(bottomSheet)
-                    this@ExploreFragment.bottomSheetMetrics = currBottomSheetMetrics // Caching
-                }
-
                 // Update size of map to shrink/grow accordingly
-                updateMapSize(currBottomSheetMetrics, slideOffset)
+                updateMapSize(getCurrentBottomSheetMetrics(bottomSheet), slideOffset)
             }
         })
 
@@ -226,14 +187,7 @@ class ExploreFragment : Fragment() {
                 // Remove listener to avoid multiple calls
                 bottomSheet.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
-                var currBottomSheetMetrics: BottomSheetMetrics? = this@ExploreFragment.bottomSheetMetrics
-
-                // If bottom sheet sizes have not been calculated yet, calculate them and cache
-                // them for future reuse
-                if (currBottomSheetMetrics == null) {
-                    currBottomSheetMetrics = calcBottomSheetMetrics(bottomSheet)
-                    this@ExploreFragment.bottomSheetMetrics = currBottomSheetMetrics // Caching
-                }
+                val currBottomSheetMetrics: BottomSheetMetrics = getCurrentBottomSheetMetrics(bottomSheet)
 
                 // Figure out where bottom sheet state is currently to get start slide offset
                 val startSlideOffset: Float = when (BottomSheetBehavior.from(bottomSheet).state) {
@@ -320,11 +274,3 @@ class ExploreFragment : Fragment() {
         }
     }
 }
-
-// Non-changing values for bottom sheet to reuse
-data class BottomSheetMetrics(
-    val heightOfHalfExpandedBottomSheet: Int,
-    val heightOfFullyExpandedBottomSheet: Int,
-    val peekHeight: Int,
-    val halfSlideOffset: Float
-)
