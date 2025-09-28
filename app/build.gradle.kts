@@ -99,4 +99,5 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.google.maps)
     implementation(libs.play.services.location)
+    implementation(libs.paging.runtime)
 }
