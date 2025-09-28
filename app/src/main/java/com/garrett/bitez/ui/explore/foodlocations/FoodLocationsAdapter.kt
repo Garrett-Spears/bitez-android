@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import com.garrett.bitez.R
 import com.garrett.bitez.data.model.FoodLocation
 
-class FoodLocationsAdapter(private val foodLocationsList: MutableList<FoodLocation>) : ListAdapter<FoodLocation, FoodLocationViewHolder>(foodLocationComparator) {
+class FoodLocationsAdapter : ListAdapter<FoodLocation, FoodLocationViewHolder>(foodLocationComparator) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FoodLocationViewHolder {
         // Inflate the item layout
         val itemView: View = LayoutInflater.from(parent.context)
@@ -18,16 +18,12 @@ class FoodLocationsAdapter(private val foodLocationsList: MutableList<FoodLocati
     }
 
     override fun onBindViewHolder(viewHolder: FoodLocationViewHolder, position: Int) {
-        val foodLocationItem: FoodLocation? = foodLocationsList.getOrNull(position)
+        val foodLocationItem: FoodLocation? = this.getItem(position)
 
         // Bind data to view holder to display
         if (foodLocationItem != null) {
             viewHolder.bind(foodLocationItem)
         }
-    }
-
-    override fun getItemCount(): Int {
-        return foodLocationsList.size
     }
 
     // Create comparator to pass to adapter to use

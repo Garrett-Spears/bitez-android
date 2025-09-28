@@ -220,7 +220,7 @@ class ExploreFragment : Fragment() {
             bottomSheet.findViewById<RecyclerView>(R.id.food_locations_recycler_view)
 
         // Create adapter for recyclerView
-        this.foodLocationsAdapter = FoodLocationsAdapter(mutableListOf())
+        this.foodLocationsAdapter = FoodLocationsAdapter()
 
         // Set adapter and layout manager for RV
         foodLocationsRecyclerView.adapter = this.foodLocationsAdapter
@@ -232,10 +232,27 @@ class ExploreFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 this@ExploreFragment.exploreViewModel.foodLocations.collectLatest {
                         newFoodLocations: List<FoodLocation> ->
+                    Log.d(tag, "Got new state flow: $newFoodLocations")
                     foodLocationsAdapter.submitList(newFoodLocations)
                 }
             }
         }
+
+        // Add listener to fetch next page of data when close to end of list
+        foodLocationsRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                val layoutManager: LinearLayoutManager = rv.layoutManager as LinearLayoutManager
+                val totalItemCount: Int = layoutManager.itemCount
+                val lastVisible: Int = layoutManager.findLastVisibleItemPosition()
+
+                // If less than 5 items from end of list, fetch next page
+                if (lastVisible >= totalItemCount - 5) {
+                    this@ExploreFragment.exploreViewModel.fetchNextPageFoodLocations()
+                }
+            }
+        })
+
+        this.exploreViewModel.fetchNextPageFoodLocations()
     }
 
     private fun initializeMap(restoringSavedPosition: Boolean) {

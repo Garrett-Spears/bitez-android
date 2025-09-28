@@ -8,14 +8,18 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.garrett.bitez.data.model.FoodLocation
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlin.String
 
 const val CITY_ZOOM_LEVEL: Float = 12f
 
@@ -29,6 +33,11 @@ class ExploreViewModel : ViewModel() {
     // Keep track of position in map where camera should be
     private val _cameraPosition: MutableLiveData<CameraPosition?> = MutableLiveData<CameraPosition?>(null)
     val cameraPosition: LiveData<CameraPosition?> = _cameraPosition
+
+    // Keep track of page metadata for food locations
+    private var nextPageToken: String? = null
+    private var isLoadingFoodLocations: Boolean = false
+    private var isLastPage: Boolean = false
 
     // List of locations on map to display in list
     private val _foodLocations: MutableStateFlow<List<FoodLocation>> =
@@ -55,6 +64,37 @@ class ExploreViewModel : ViewModel() {
 
     fun cameraPositionAvailable(): Boolean {
         return this.cameraPosition.value != null
+    }
+
+    fun fetchNextPageFoodLocations() {
+        // Return to prevent duplicate API requests or if already fetched last page
+        if (isLoadingFoodLocations || isLastPage) return
+
+        this.viewModelScope.launch {
+            this@ExploreViewModel.isLoadingFoodLocations = true
+            Log.d(tag, "Fetching next page of food locations")
+            // Simulate network delay
+            delay(2000)
+
+            // Generate fake page of data
+            val nextFoodLocations: List<FoodLocation> = List(10) { index ->
+                val id = (_foodLocations.value.size + index + 1).toString()
+                FoodLocation(
+                    id = id,
+                    name = "Food Place $id",
+                    address = "123 Example St, City $id",
+                    latLng = LatLng(39.8283 + index, -98.5795 + index),
+                    googleMapsRating = (1..5).random().toDouble(),
+                    photoURL = "https://picsum.photos/200/300?random=$id"
+                )
+            }
+
+            // Append newly fetched data to mutable state flow
+            this@ExploreViewModel._foodLocations.value =
+                this@ExploreViewModel._foodLocations.value + nextFoodLocations
+
+            this@ExploreViewModel.isLoadingFoodLocations = false
+        }
     }
 
     // Function to fetch the last known location of device
