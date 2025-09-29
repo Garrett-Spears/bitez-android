@@ -8,5 +8,5 @@ data class Place (
     val id: String,
     val displayName: PlaceDisplayName,
     val location: PlaceLocation,
-    val photos: List<PlacePhoto>
+    val photos: List<PlacePhoto>?
 )

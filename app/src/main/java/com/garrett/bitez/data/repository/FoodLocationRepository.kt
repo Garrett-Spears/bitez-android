@@ -80,7 +80,7 @@ class FoodLocationRepository {
                 id = place.id,
                 name = place.displayName.text,
                 location = LatLng(place.location.latitude, place.location.longitude),
-                photo = place.photos.firstOrNull() // Only use first photo if available
+                photo = place.photos?.firstOrNull() // Only use first photo if available
             )
         }
 
