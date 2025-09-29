@@ -45,8 +45,8 @@ class FoodLocationRepository {
         val highLng = currLongitude + lngOffset
 
         val textSearchRequest: TextSearchRequest = TextSearchRequest(
-            textQuery = "coffee",
-            includedType = "cafe",
+            textQuery = "best food or drinks near me",
+            includedType = null,
             pageSize = DEFAULT_NEARBY_LOCATIONS_PAGE_SIZE,
             locationRestriction = LocationRestriction(
                 rectangle = Rectangle(
@@ -71,6 +71,10 @@ class FoodLocationRepository {
         }
         catch (e: Exception) {
             Log.e(tag, "Error fetching food locations: ${e.toString()}")
+            return null
+        }
+
+        if (response.places == null) {
             return null
         }
 

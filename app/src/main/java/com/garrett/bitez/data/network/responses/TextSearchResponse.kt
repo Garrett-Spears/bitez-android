@@ -4,5 +4,5 @@ import com.garrett.bitez.data.model.googleplaces.Place
 
 data class TextSearchResponse (
     val nextPageToken: String?,
-    val places: List<Place>
+    val places: List<Place>?
 )
