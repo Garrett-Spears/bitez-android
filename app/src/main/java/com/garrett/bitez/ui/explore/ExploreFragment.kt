@@ -134,7 +134,10 @@ class ExploreFragment : Fragment() {
     override fun onResume() { super.onResume(); mapView.onResume() }
     override fun onPause() { mapView.onPause(); super.onPause() }
     override fun onStop() { mapView.onStop(); super.onStop() }
-    override fun onDestroyView() { mapView.onDestroy(); super.onDestroyView() }
+    override fun onDestroyView() {
+        this@ExploreFragment.exploreViewModel.removeMarkedFoodLocations()
+        mapView.onDestroy();
+        super.onDestroyView() }
     override fun onLowMemory() { super.onLowMemory(); mapView.onLowMemory() }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -235,6 +238,12 @@ class ExploreFragment : Fragment() {
                 this@ExploreFragment.exploreViewModel.foodLocations.collectLatest {
                         newFoodLocations: List<FoodLocation> ->
                     foodLocationsAdapter.submitList(newFoodLocations)
+
+                    // Pass null ref if map is not ready yet
+                    val googleMapRef: GoogleMap? = if (::googleMap.isInitialized) googleMap else null
+
+                    this@ExploreFragment.exploreViewModel
+                        .markNewFoodLocations(newFoodLocations, googleMapRef)
                 }
             }
         }
@@ -276,6 +285,9 @@ class ExploreFragment : Fragment() {
 
                 // Initially move camera upon render
                 moveCameraToPosition(cameraPosition, restoringSavedPosition)
+
+                // Mark any food locations on the map that arrived before map was ready
+                this@ExploreFragment.exploreViewModel.markNewFoodLocations(emptyList(), googleMap)
 
                 // Set listener to save camera position upon each position change
                 googleMap.setOnCameraIdleListener(object : GoogleMap.OnCameraIdleListener {

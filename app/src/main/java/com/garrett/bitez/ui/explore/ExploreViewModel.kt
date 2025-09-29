@@ -12,8 +12,11 @@ import androidx.lifecycle.viewModelScope
 import com.garrett.bitez.data.model.FoodLocation
 import com.garrett.bitez.data.repository.FoodLocationRepository
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,6 +42,10 @@ class ExploreViewModel @Inject constructor(
     private val _cameraPosition: MutableLiveData<CameraPosition?> = MutableLiveData<CameraPosition?>(null)
     val cameraPosition: LiveData<CameraPosition?> = _cameraPosition
 
+    // Keep track of which locations on the map that are currently marked, or need to be marked
+    private val pendingMarkedFoodLocations: MutableSet<FoodLocation> = mutableSetOf()
+    private val markedFoodLocations: MutableSet<String> = mutableSetOf()
+
     // Keep track of page metadata for food locations
     private var currentFoodLocationSearchParams: FoodLocationSearchParams? = null
     private var isLoadingFoodLocations: Boolean = false
@@ -55,6 +62,34 @@ class ExploreViewModel @Inject constructor(
 
     fun setCameraPosition(cameraPosition: CameraPosition?) {
         this._cameraPosition.value = cameraPosition
+    }
+
+    fun markNewFoodLocations(foodLocations: List<FoodLocation>, map: GoogleMap?) {
+        // Update pending list with all potential locations that need to be marked
+        this.pendingMarkedFoodLocations.addAll(foodLocations)
+
+        // If map is not ready yet then come around to mark locations when ready
+        if (map == null) return
+
+        // Check each food location, and if it hasn't been marked yet then mark it on the map
+        for (foodLocation: FoodLocation in pendingMarkedFoodLocations) {
+            if (!this.markedFoodLocations.contains(foodLocation.id)) {
+                // Add the ID to the set so we don't mark it again
+                this.markedFoodLocations.add(foodLocation.id)
+
+                val foodLocationMarker: MarkerOptions = MarkerOptions()
+                    .position(foodLocation.location)
+                    .title(foodLocation.name)
+
+                // Add new marker to the map
+                map.addMarker(foodLocationMarker)
+            }
+        }
+    }
+
+    fun removeMarkedFoodLocations() {
+        this.pendingMarkedFoodLocations.clear()
+        this.markedFoodLocations.clear()
     }
 
     // Overloaded setCamera position given necessary components needed to build one
