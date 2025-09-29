@@ -35,6 +35,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -48,6 +49,7 @@ const val DEFAULT_ZOOM_LEVEL: Float = 3f
 // Bottom sheet half-expanded height ration
 const val BOTTOM_SHEET_HALF_EXPANDED_RATIO: Float = 0.5f
 
+@AndroidEntryPoint
 class ExploreFragment : Fragment() {
     private val tag: String = this::class.java.simpleName
 
@@ -232,7 +234,6 @@ class ExploreFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 this@ExploreFragment.exploreViewModel.foodLocations.collectLatest {
                         newFoodLocations: List<FoodLocation> ->
-                    Log.d(tag, "Got new state flow: $newFoodLocations")
                     foodLocationsAdapter.submitList(newFoodLocations)
                 }
             }
@@ -245,14 +246,12 @@ class ExploreFragment : Fragment() {
                 val totalItemCount: Int = layoutManager.itemCount
                 val lastVisible: Int = layoutManager.findLastVisibleItemPosition()
 
-                // If less than 5 items from end of list, fetch next page
-                if (lastVisible >= totalItemCount - 5) {
+                // If less than 2 items from end of list, fetch next page
+                if (lastVisible >= totalItemCount - 2) {
                     this@ExploreFragment.exploreViewModel.fetchNextPageFoodLocations()
                 }
             }
         })
-
-        this.exploreViewModel.fetchNextPageFoodLocations()
     }
 
     private fun initializeMap(restoringSavedPosition: Boolean) {
@@ -262,6 +261,9 @@ class ExploreFragment : Fragment() {
         if (cameraPosition == null) {
             cameraPosition = this.buildDefaultCameraPosition()
         }
+
+        // Load nearby location data for current location on initialization
+        this.exploreViewModel.fetchNextPageFoodLocations()
 
         // Fetch map and initialize its state
         mapView.getMapAsync(object : OnMapReadyCallback {

@@ -100,4 +100,7 @@ dependencies {
     implementation(libs.google.maps)
     implementation(libs.play.services.location)
     implementation(libs.paging.runtime)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp.logging)
 }

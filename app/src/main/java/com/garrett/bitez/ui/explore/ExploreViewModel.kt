@@ -18,7 +18,6 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -41,7 +40,7 @@ class ExploreViewModel @Inject constructor(
     val cameraPosition: LiveData<CameraPosition?> = _cameraPosition
 
     // Keep track of page metadata for food locations
-    private var nextPageToken: String? = null
+    private var currentFoodLocationSearchParams: FoodLocationSearchParams? = null
     private var isLoadingFoodLocations: Boolean = false
     private var isLastPage: Boolean = false
 
@@ -76,28 +75,56 @@ class ExploreViewModel @Inject constructor(
         // Return to prevent duplicate API requests or if already fetched last page
         if (isLoadingFoodLocations || isLastPage) return
 
+        // Get params needed for API call
+        var foodLocationSearchParams: FoodLocationSearchParams? = this.currentFoodLocationSearchParams
+
+        // If starting new food location search, get location to search from and keep track of state
+        // to allow consistent pagination
+        if (foodLocationSearchParams == null) {
+            val currCameraPosition = this.cameraPosition.value
+
+            // No location to fetch food places for
+            if (currCameraPosition == null) return
+
+            // Starting new search for this location, so keep track of search params
+            foodLocationSearchParams = FoodLocationSearchParams(
+                currLatLng = currCameraPosition.target,
+                nextPageToken = null
+            )
+            this@ExploreViewModel.currentFoodLocationSearchParams = foodLocationSearchParams
+        }
+
+        // Launch coroutine to fetch data
         this.viewModelScope.launch {
             this@ExploreViewModel.isLoadingFoodLocations = true
-            Log.d(tag, "Fetching next page of food locations")
-            // Simulate network delay
-            delay(2000)
 
-            // Generate fake page of data
-            val nextFoodLocations: List<FoodLocation> = List(10) { index ->
-                val id = (_foodLocations.value.size + index + 1).toString()
-                FoodLocation(
-                    id = id,
-                    name = "Food Place $id",
-                    address = "123 Example St, City $id",
-                    latLng = LatLng(39.8283 + index, -98.5795 + index),
-                    googleMapsRating = (1..5).random().toDouble(),
-                    photoURL = "https://picsum.photos/200/300?random=$id"
-                )
+            // Fetch next page of food locations for current location
+            val nextPageFoodLocations: Pair<List<FoodLocation>, String?>? =
+                this@ExploreViewModel.foodLocationRepository
+                    .getNearbyFoodLocations(
+                        foodLocationSearchParams.currLatLng,
+                        foodLocationSearchParams.nextPageToken)
+
+            // Error occurred
+            if (nextPageFoodLocations == null) {
+                Log.e(tag, "Error fetching page of food locations.")
+                return@launch
+            }
+            // Append newly fetched data to mutable state flow
+            else if (nextPageFoodLocations.first.isNotEmpty()) {
+                this@ExploreViewModel._foodLocations.value =
+                    this@ExploreViewModel._foodLocations.value + nextPageFoodLocations.first
             }
 
-            // Append newly fetched data to mutable state flow
-            this@ExploreViewModel._foodLocations.value =
-                this@ExploreViewModel._foodLocations.value + nextFoodLocations
+            // If next page token is null, then this is the last page
+            if (nextPageFoodLocations.second == null) {
+                this@ExploreViewModel.isLastPage = true
+            }
+            // If not-null, save state of next page token
+            else {
+                this@ExploreViewModel.currentFoodLocationSearchParams?.nextPageToken =
+                    nextPageFoodLocations.second
+            }
 
             this@ExploreViewModel.isLoadingFoodLocations = false
         }
@@ -137,3 +164,8 @@ class ExploreViewModel @Inject constructor(
         }
     }
 }
+
+data class FoodLocationSearchParams(
+    val currLatLng: LatLng,
+    var nextPageToken: String?
+)

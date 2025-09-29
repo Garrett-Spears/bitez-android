@@ -20,6 +20,9 @@ secretsGradle = "2.0.1"
 googleMaps = "19.2.0"
 playServicesLocation = "21.3.0"
 paging = "3.3.6"
+retrofit = "3.0.0"
+gsonConverter = "3.0.0"
+okhttpLogging = "5.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,6 +50,10 @@ androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview"
 google-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "googleMaps" }
 play-services-location = { group = "com.google.android.gms", name ="play-services-location", version.ref = "playServicesLocation" }
 paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "gsonConverter" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttpLogging" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
