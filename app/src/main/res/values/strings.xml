@@ -9,4 +9,5 @@
 
     <string name="explore_map_id">explore_map_id"</string>
     <string name="bottom_sheet_title">Nearby Places</string>
+    <string name="food_location_photo_content_description">Food location photo</string>
 </resources>
