@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlin.String
 
 const val CITY_ZOOM_LEVEL: Float = 12f
+const val REFRESH_LOCATIONS_DIST: Float = 6400f // Around 4 miles
 
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
@@ -61,6 +62,43 @@ class ExploreViewModel @Inject constructor(
     }
 
     fun setCameraPosition(cameraPosition: CameraPosition?) {
+        // Get old and new latitude/longitude
+        val oldLat: Double = currentFoodLocationSearchParams?.currLatLng?.latitude ?: 0.0
+        val oldLon: Double = currentFoodLocationSearchParams?.currLatLng?.longitude ?: 0.0
+        val newLat: Double = cameraPosition?.target?.latitude ?: 0.0
+        val newLon: Double = cameraPosition?.target?.longitude ?: 0.0
+
+        // Create array to store distance between the two points in
+        val resDist: FloatArray = FloatArray(1)
+
+        // Evaluate distance between the two points
+        Location.distanceBetween(
+            oldLat,
+            oldLon,
+            newLat,
+            newLon,
+            resDist,
+        )
+
+        // Wipe all food locations if distance threshold from current search location was exceeded
+        if (resDist[0] >= REFRESH_LOCATIONS_DIST) {
+            Log.d(tag, "Clearing and refreshing locations because distance from search origin is ${resDist[0]}")
+
+            // Clear current params for searching food locations
+            this.currentFoodLocationSearchParams = null
+
+            // Clear food locations marked on map
+            this.pendingMarkedFoodLocations.clear()
+            this.markedFoodLocations.clear()
+
+            // Clear flags to allow for fetching of new locations
+            this.isLoadingFoodLocations = false
+            this.isLastPage = false
+
+            // Clear stateful list of food locations
+            this._foodLocations.value = emptyList()
+        }
+
         this._cameraPosition.value = cameraPosition
     }
 

@@ -242,6 +242,12 @@ class ExploreFragment : Fragment() {
                     // Pass null ref if map is not ready yet
                     val googleMapRef: GoogleMap? = if (::googleMap.isInitialized) googleMap else null
 
+                    // If there are no food locations currently fetched, then clear any stale
+                    // markers before adding any new ones
+                    if (this@ExploreFragment.exploreViewModel.foodLocations.value.isEmpty()) {
+                        googleMapRef?.clear()
+                    }
+
                     this@ExploreFragment.exploreViewModel
                         .markNewFoodLocations(newFoodLocations, googleMapRef)
                 }
