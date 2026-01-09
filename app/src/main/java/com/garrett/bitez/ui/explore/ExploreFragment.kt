@@ -35,6 +35,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collectLatest
@@ -59,6 +60,7 @@ class ExploreFragment : Fragment() {
     // UI components
     private lateinit var mapView: MapView
     private lateinit var googleMap: GoogleMap
+    private lateinit var searchButton: MaterialButton
 
     // Locations service client
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -96,6 +98,15 @@ class ExploreFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         this.exploreViewModel.setIsMapReady(false)
+
+        // Get ref to manual search button
+        this.searchButton = view.findViewById<MaterialButton>(R.id.search_locations_button)
+
+        // Add logic to hide button and manually search for food locations as an option
+        this.searchButton.setOnClickListener {
+            this.searchButton.visibility = View.INVISIBLE
+            this.exploreViewModel.fetchNextPageFoodLocations()
+        }
 
         // Check if map already has saved position to restore
         val mapHasSavedPosition: Boolean = this.exploreViewModel.cameraPositionAvailable()
@@ -246,6 +257,13 @@ class ExploreFragment : Fragment() {
                     // markers before adding any new ones
                     if (this@ExploreFragment.exploreViewModel.foodLocations.value.isEmpty()) {
                         googleMapRef?.clear()
+
+                        // Show manual search button when no places showing up
+                        this@ExploreFragment.searchButton.visibility = View.VISIBLE
+                    }
+                    else {
+                        // Hide button when locations are showing up
+                        this@ExploreFragment.searchButton.visibility = View.INVISIBLE
                     }
 
                     this@ExploreFragment.exploreViewModel
